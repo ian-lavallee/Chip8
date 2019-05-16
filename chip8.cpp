@@ -217,11 +217,12 @@ void Chip8::EmulateCycle()
 		// Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the 
 		// execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from 
 		// set to unset when the sprite is drawn, and to 0 if that doesn’t happen
-		int x = V[(opcode & 0x0F00) >> 8];
-		int y = V[(opcode & 0x00F0) >> 4];
-		int width = 8;
-		int height = opcode & 0x000F;
-		int overDrawn = 0;
+		int x, y, width, height, overDrawn; // compiler error (VS2019) C2360
+		x = V[(opcode & 0x0F00) >> 8];
+		y = V[(opcode & 0x00F0) >> 4];
+		width = 8;
+		height = opcode & 0x000F;
+		overDrawn = 0;
 		for (int i = 0; i < width; ++i)
 		{
 			for (int z = 0; z < height; ++z)
@@ -275,7 +276,8 @@ void Chip8::EmulateCycle()
 			pc += 2;
 			break;
 		case 0x000A: // FX0A  A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)
-			bool pressed = false;
+			bool pressed; // for compiler error
+			pressed = false;
 			for (int i = 0; i < 16; ++i)
 			{
 				if (key[i])
@@ -309,7 +311,8 @@ void Chip8::EmulateCycle()
 			break;
 		case 0x0033: // FX33 Stores the binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1,
 			// and the least significant digit at I plus 2. 
-			int val = V[(opcode & 0x0F00) >> 8];
+			int val; // for VS compiler error C2360
+			val = V[(opcode & 0x0F00) >> 8];
 			memory[I] = val / 100;
 			memory[I + 1] = (val % 100) / 10;
 			memory[I + 2] = val % 10;

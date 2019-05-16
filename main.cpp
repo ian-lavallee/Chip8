@@ -15,6 +15,8 @@ const int SCREEN_HEIGHT = 480;
 
 int main( int argc, char* args[] )
 {
+	printf("here");
+	/*
 	setupGraphics();
 	setupInput();
 
