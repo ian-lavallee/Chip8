@@ -49,16 +49,54 @@ void Chip8::Initialize()
 	I = 0;      // Reset index register
 	sp = 0;      // Reset stack pointer
 
-	// Clear display	
+	// Clear display
+	for (int i = 0; i < 64 * 32; ++i)
+	{
+		gfx[i] = 0;
+	}
+
 	// Clear stack
+	for (int i = 0; i < 16; ++i)
+	{
+		stack[i] = 0;
+	}
+
 	// Clear registers V0-VF
+	for (int i = 0; i <= 0x000F; ++i)
+	{
+		V[i] = 0;
+	}
+
 	// Clear memory
+	for (int i = 0; i < 4096; ++i)
+	{
+		memory[i] = 0;
+	}
+
+	// Clear keys	
+	for (int i = 0; i < 16; ++i)
+	{
+		key[i] = 0;
+	}
 
 	// Load fontset
 	for (int i = 0; i < 80; ++i)
+	{
 		memory[i] = chip8_fontset[i];
+	}
 
 	// Reset timers
+	delay_timer = 0;
+	sound_timer = 0;
+}
+
+void Chip8::LoadProgram(std::vector<char>  buffer)
+{
+	for (int i = 0; i < buffer.size(); ++i)
+	{
+		memory[i + 512] = buffer[i];
+	}
+		
 }
 
 void Chip8::EmulateCycle()
@@ -187,7 +225,9 @@ void Chip8::EmulateCycle()
 			this->drawFlag = true;
 			break;
 		case 0x000E: // 00EE return from subroutine
-		
+			--sp;
+			pc = stack[sp] + 2;
+			break;
 		default:
 			printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
 			break;
@@ -217,24 +257,24 @@ void Chip8::EmulateCycle()
 		// Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the 
 		// execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from 
 		// set to unset when the sprite is drawn, and to 0 if that doesn’t happen
-		int x, y, width, height, overDrawn; // compiler error (VS2019) C2360
+		unsigned short x, y, width, height, pixel; // compiler error (VS2019) C2360
 		x = V[(opcode & 0x0F00) >> 8];
 		y = V[(opcode & 0x00F0) >> 4];
 		width = 8;
 		height = opcode & 0x000F;
-		overDrawn = 0;
-		for (int i = 0; i < width; ++i)
+		V[0x000F] = 0;
+		for (int i = 0; i < height; ++i)
 		{
-			for (int z = 0; z < height; ++z)
+			pixel = memory[I + i];
+			for (int z = 0; z < width; ++z)
 			{
-				if (gfx[x + i + ((height + z) * 64)] = 1)
+				if ((pixel & (0x80 >> z)) != 0)
 				{
-					V[0x000F] = 1;
-					gfx[x + i + ((height + z) * 64)] = 0;
-				}
-				else
-				{
-					gfx[x + i + ((height + z) * 64)] = 1;
+					if (gfx[(x + z + ((y + i) * 64)) % 2048] == 1)
+					{
+						V[0xF] = 1;
+					}
+					gfx[x + z + ((y + i) * 64) % 2048] ^= 1;
 				}
 			}
 		}
